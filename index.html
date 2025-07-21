@@ -1,0 +1,513 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitnessis Store Catalog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f7f4;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .phase-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: white;
+        }
+        .phase-trip {
+            background-color: #FF69B4;
+        }
+        .phase-pre-trip {
+            background-color: #4A90E2;
+        }
+        .trip-mode-grayscale {
+            filter: grayscale(100%);
+        }
+        .user-indicator {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 9999px;
+        }
+        .bg-user1 { background-color: #FFD700; }
+        .bg-user2 { background-color: #87CEEB; }
+        .bg-user3 { background-color: #98FB98; }
+        .rating-star {
+            color: #d1d5db;
+            cursor: pointer;
+        }
+        .rating-star.active {
+            color: #f59e0b;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Top Menu Bar -->
+    <nav class="glass-effect sticky top-0 z-50 px-4 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-pink-500 rounded-xl flex items-center justify-center text-white font-bold">
+                    F
+                </div>
+                <h1 class="text-xl font-bold text-gray-800 hidden sm:block">Fitnessis Catalog</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-600 hidden sm:block">Usuario:</span>
+                    <select id="user-selector" class="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
+                        <option value="user1">👩‍💼 María</option>
+                        <option value="user2">👩‍💼 Sofía</option>
+                        <option value="user3">👨‍💼 Juan</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-600 hidden sm:block">Modo:</span>
+                    <button id="trip-mode-toggle" class="px-3 py-1 bg-gray-200 rounded-lg text-sm font-medium">
+                        <span id="trip-mode-text">Pre-Viaje</span>
+                    </button>
+                </div>
+                <div id="sync-indicator" class="sync-indicator flex items-center gap-1">
+                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span class="text-xs text-gray-600 hidden sm:block">En línea</span>
+                </div>
+                <button id="upload-catalog-btn" class="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm font-medium">
+                    Cargar Catálogo
+                </button>
+            </div>
+            <button id="menu-button" class="menu-button p-2 rounded-lg hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <div class="mb-6">
+            <div class="relative">
+                <input id="store-search" type="text" placeholder="Buscar tienda por nombre, dirección o tags..." 
+                       class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 shadow-sm">
+                <button class="absolute right-3 top-3 text-gray-400 hover:text-pink-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </div>
+            <div id="filters" class="mt-3 flex flex-wrap gap-2">
+                <button class="filter-btn px-3 py-1 bg-gray-200 rounded-full text-xs font-medium" data-filter="all">Todas</button>
+                <button class="filter-btn px-3 py-1 bg-gray-200 rounded-full text-xs font-medium" data-filter="fabricante">Fabricante</button>
+                <button class="filter-btn px-3 py-1 bg-gray-200 rounded-full text-xs font-medium" data-filter="importador">Importador</button>
+                <button class="filter-btn px-3 py-1 bg-gray-200 rounded-full text-xs font-medium" data-filter="mayorista">Mayorista</button>
+                <button class="filter-btn px-3 py-1 bg-gray-200 rounded-full text-xs font-medium" data-filter="minorista">Minorista</button>
+            </div>
+        </div>
+
+        <!-- Stores Grid -->
+        <div id="stores-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Las tiendas se cargarán aquí dinámicamente -->
+        </div>
+
+        <!-- Store Detail Modal -->
+        <div id="store-modal" class="fixed inset-0 z-50 hidden">
+            <div class="modal-overlay absolute inset-0 bg-black bg-opacity-50"></div>
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="p-6 overflow-y-auto" id="modal-content">
+                        <!-- Modal content will be loaded here -->
+                    </div>
+                    <div class="border-t p-4 flex justify-end gap-3">
+                        <button id="close-modal" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Catalog Modal -->
+        <div id="upload-modal" class="fixed inset-0 z-50 hidden">
+            <div class="modal-overlay absolute inset-0 bg-black bg-opacity-50"></div>
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="p-6 border-b">
+                        <h2 class="text-xl font-bold">Cargar Catálogo</h2>
+                    </div>
+                    <div class="p-6 overflow-y-auto">
+                        <div class="mb-4">
+                            <label for="upload-store-selector" class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Tienda</label>
+                            <select id="upload-store-selector" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="category-input" class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                            <input id="category-input" type="text" placeholder="Ej: remeras, calzas, etc." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"/>
+                        </div>
+                        <div class="mb-4">
+                            <label for="image-upload-input" class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Imágenes</label>
+                            <input id="image-upload-input" type="file" multiple accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100"/>
+                        </div>
+                        <div id="upload-progress" class="space-y-2">
+                            <!-- Progress updates will be shown here -->
+                        </div>
+                    </div>
+                    <div class="border-t p-4 flex justify-end gap-3">
+                        <button id="close-upload-modal" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700">Cerrar</button>
+                        <button id="process-images-btn" class="px-4 py-2 bg-pink-500 text-white rounded-lg font-medium">Procesar y Descargar ZIP</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const stores = await fetchStoreData();
+            renderStores(stores);
+            setupEventListeners();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registrado', reg))
+                    .catch(err => console.log('Error registrando SW', err));
+            }
+        });
+
+        async function fetchStoreData() {
+            try {
+                const response = await fetch('data/stores.json');
+                const storeNames = await response.json();
+                const stores = await Promise.all(storeNames.map(async (storeName) => {
+                    const storeResponse = await fetch(`stores/${storeName}/info.json`);
+                    const storeData = await storeResponse.json();
+                    return { ...storeData, id: storeName };
+                }));
+                return stores;
+            } catch (error) {
+                console.error('Error cargando tiendas:', error);
+                return [];
+            }
+        }
+
+        function renderStores(stores) {
+            const container = document.getElementById('stores-container');
+            container.innerHTML = '';
+            stores.forEach(store => {
+                const storeCard = document.createElement('div');
+                storeCard.className = 'bg-white rounded-xl shadow-md overflow-hidden image-card transform hover:scale-105 transition-transform duration-300';
+                storeCard.innerHTML = `
+                    <div class="relative">
+                        <img src="${store.image || 'assets/images/store-placeholder.jpg'}" 
+                             alt="${store.name}" class="w-full h-48 object-cover">
+                        <span class="phase-badge ${store.trip_mode ? 'phase-trip' : 'phase-pre-trip'}">
+                            ${store.trip_mode ? 'Viaje' : 'Pre-Viaje'}
+                        </span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg mb-1">${store.name}</h3>
+                        <p class="text-gray-600 text-sm mb-2 line-clamp-2">${store.description}</p>
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${store.tags.map(tag => `<span class="px-2 py-1 bg-gray-100 rounded-full text-xs">${tag}</span>`).join('')}
+                        </div>
+                        <button class="view-store-btn w-full py-2 bg-pink-500 text-white rounded-lg font-medium"
+                                data-store-id="${store.id}">
+                            Ver detalles
+                        </button>
+                    </div>
+                `;
+                container.appendChild(storeCard);
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('trip-mode-toggle').addEventListener('click', toggleTripMode);
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => filterStores(btn.dataset.filter));
+            });
+            document.getElementById('store-search').addEventListener('input', (e) => {
+                searchStores(e.target.value);
+            });
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.view-store-btn')) {
+                    const storeId = e.target.closest('.view-store-btn').dataset.storeId;
+                    openStoreModal(storeId);
+                }
+            });
+            document.getElementById('close-modal').addEventListener('click', () => {
+                document.getElementById('store-modal').classList.add('hidden');
+            });
+            document.getElementById('upload-catalog-btn').addEventListener('click', openUploadModal);
+            document.getElementById('close-upload-modal').addEventListener('click', () => {
+                document.getElementById('upload-modal').classList.add('hidden');
+            });
+            document.getElementById('process-images-btn').addEventListener('click', processAndDownloadImages);
+        }
+
+        async function openUploadModal() {
+            const selector = document.getElementById('upload-store-selector');
+            selector.innerHTML = '<option value="">Seleccione una tienda...</option>';
+            const stores = await fetchStoreData();
+            stores.forEach(store => {
+                const option = document.createElement('option');
+                option.value = store.id;
+                option.textContent = store.name;
+                selector.appendChild(option);
+            });
+            document.getElementById('upload-modal').classList.remove('hidden');
+        }
+
+        async function processAndDownloadImages() {
+            const storeId = document.getElementById('upload-store-selector').value;
+            const category = document.getElementById('category-input').value.trim();
+            const files = document.getElementById('image-upload-input').files;
+            const progressContainer = document.getElementById('upload-progress');
+
+            if (!storeId || !category || files.length === 0) {
+                alert('Por favor, seleccione una tienda, ingrese una categoría y seleccione al menos una imagen.');
+                return;
+            }
+
+            progressContainer.innerHTML = '<p>Procesando imágenes...</p>';
+            const zip = new JSZip();
+            const catalogFolder = zip.folder(`stores/${storeId}/catalog/pre-trip`);
+
+            const existingImages = await getExistingImages(storeId, category);
+            let imageCounter = 1;
+            if (existingImages.length > 0) {
+                const lastImage = existingImages.sort((a, b) => {
+                    const numA = parseInt(a.split('_').pop().split('.')[0], 10);
+                    const numB = parseInt(b.split('_').pop().split('.')[0], 10);
+                    return numA - numB;
+                }).pop();
+                const lastNumber = parseInt(lastImage.split('_').pop().split('.')[0], 10);
+                imageCounter = lastNumber + 1;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileName = `${storeId}_${category}_${imageCounter++}.webp`;
+                
+                try {
+                    const webpBlob = await convertToWebP(file);
+                    catalogFolder.file(fileName, webpBlob);
+                    progressContainer.innerHTML += `<p class="text-green-600">✓ ${file.name} -> ${fileName}</p>`;
+                } catch (error) {
+                    progressContainer.innerHTML += `<p class="text-red-600">✗ Error con ${file.name}: ${error.message}</p>`;
+                }
+            }
+
+            progressContainer.innerHTML += '<p>Generando ZIP...</p>';
+            zip.generateAsync({ type: 'blob' })
+                .then(function(content) {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(content);
+                    link.download = `catalogo_${storeId}_${category}.zip`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    progressContainer.innerHTML += '<p class="font-bold text-blue-600">¡ZIP descargado con éxito!</p>';
+                });
+        }
+
+        async function getExistingImages(storeId, category) {
+            try {
+                const response = await fetch(`/stores/${storeId}/catalog/pre-trip/catalog.json`);
+                if (!response.ok) return [];
+                const images = await response.json();
+                return images.filter(image => image.startsWith(`${storeId}_${category}_`));
+            } catch (error) {
+                console.error('Error getting existing images:', error);
+                return [];
+            }
+        }
+
+        function convertToWebP(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Error en la conversión a WebP.'));
+                            }
+                        }, 'image/webp', 0.8);
+                    };
+                    img.onerror = () => reject(new Error('No se pudo cargar la imagen.'));
+                };
+                reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+            });
+        }
+
+        function toggleTripMode() {
+            const toggleBtn = document.getElementById('trip-mode-toggle');
+            const modeText = document.getElementById('trip-mode-text');
+            const isTripMode = toggleBtn.classList.toggle('bg-pink-700');
+            modeText.textContent = isTripMode ? 'En Viaje' : 'Pre-Viaje';
+            document.querySelectorAll('.image-card img').forEach(img => {
+                img.classList.toggle('trip-mode-grayscale', !isTripMode);
+            });
+        }
+
+        function filterStores(filter) {
+            console.log('Filtrando por:', filter);
+        }
+
+        function searchStores(query) {
+            console.log('Buscando:', query);
+        }
+
+        async function openStoreModal(storeId) {
+            const modal = document.getElementById('store-modal');
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = '<div class="text-center py-8">Cargando...</div>';
+            modal.classList.remove('hidden');
+
+            try {
+                const storeResponse = await fetch(`/stores/${storeId}/info.json`);
+                const store = await storeResponse.json();
+
+                const catalogResponse = await fetch(`/stores/${storeId}/catalog/pre-trip/catalog.json`);
+                const imageList = catalogResponse.ok ? await catalogResponse.json() : [];
+
+                const imagesByCategory = imageList.reduce((acc, imagePath) => {
+                    const parts = imagePath.split('_');
+                    if (parts.length > 2) {
+                        const category = parts[1];
+                        if (!acc[category]) {
+                            acc[category] = [];
+                        }
+                        acc[category].push(imagePath);
+                    }
+                    return acc;
+                }, {});
+
+                const categories = Object.keys(imagesByCategory);
+
+                let categorySelector = '';
+                if (categories.length > 0) {
+                    categorySelector = `
+                        <div class="mb-4">
+                            <label for="gallery-category-filter" class="block text-sm font-medium text-gray-700 mb-2">Filtrar por categoría:</label>
+                            <select id="gallery-category-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
+                                <option value="all">Todas las categorías</option>
+                                ${categories.map(category => `<option value="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                }
+
+                function generateGalleryHTML(filter = 'all') {
+                    let galleryHtml = '';
+                    const categoriesToRender = filter === 'all' ? categories : [filter];
+
+                    for (const category of categoriesToRender) {
+                        if (imagesByCategory[category]) {
+                            galleryHtml += `
+                                <div class="mb-4 category-gallery" data-category="${category}">
+                                    <h4 class="font-semibold mb-2 capitalize">${category}</h4>
+                                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                        ${imagesByCategory[category].map(imagePath => `
+                                            <div class="bg-gray-100 h-32 rounded-lg overflow-hidden">
+                                                <img src="/stores/${storeId}/catalog/pre-trip/${imagePath}" class="w-full h-full object-cover"/>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                    return galleryHtml || '<p class="text-gray-500">No hay imágenes en el catálogo para esta categoría.</p>';
+                }
+
+                modalContent.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-4">${store.name}</h2>
+                            <p class="text-gray-700 mb-4">${store.description}</p>
+                            <div class="mb-6">
+                                <h3 class="font-semibold mb-2">Información de contacto</h3>
+                                <div class="space-y-2">
+                                    ${store.address ? `<p><span class="font-medium">Dirección:</span> ${store.address}</p>` : ''}
+                                    ${store.contact ? `<p><span class="font-medium">Contacto:</span> ${store.contact}</p>` : ''}
+                                    ${store.website ? `<p><span class="font-medium">Sitio web:</span> <a href="${store.website}" target="_blank" class="text-pink-500 hover:underline">${store.website}</a></p>` : ''}
+                                    ${store.instagram ? `<p><span class="font-medium">Instagram:</span> <a href="${store.instagram}" target="_blank" class="text-pink-500 hover:underline">${store.instagram}</a></p>` : ''}
+                                </div>
+                            </div>
+                            <div class="mb-6">
+                                <h3 class="font-semibold mb-2">Ubicación</h3>
+                                <div class="h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <p class="text-gray-500">Mapa de ubicación</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-4">Galería de productos</h3>
+                            ${categorySelector}
+                            <div id="gallery-container">
+                                ${generateGalleryHTML()}
+                            </div>
+                            <h3 class="font-semibold mb-2">Evaluaciones</h3>
+                            <div class="space-y-4">
+                                <div class="border-b pb-4">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="user-indicator bg-user1"></span>
+                                        <span class="font-medium">María</span>
+                                    </div>
+                                    <div class="rating-stars">
+                                        <span class="rating-star active">★</span><span class="rating-star active">★</span><span class="rating-star active">★</span><span class="rating-star active">★</span><span class="rating-star">★</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">Buena calidad pero precios algo elevados.</p>
+                                </div>
+                                <div class="border-b pb-4">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="user-indicator bg-user2"></span>
+                                        <span class="font-medium">Sofía</span>
+                                    </div>
+                                    <div class="rating-stars">
+                                        <span class="rating-star active">★</span><span class="rating-star active">★</span><span class="rating-star active">★</span><span class="rating-star">★</span><span class="rating-star">★</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">Diseños modernos pero atención regular.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const categoryFilter = document.getElementById('gallery-category-filter');
+                if (categoryFilter) {
+                    categoryFilter.addEventListener('change', (e) => {
+                        document.getElementById('gallery-container').innerHTML = generateGalleryHTML(e.target.value);
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error cargando tienda:', error);
+                modalContent.innerHTML = '<div class="text-center py-8 text-red-500">Error al cargar la información de la tienda. Verifique que el catálogo y la información de la tienda existan.</div>';
+            }
+        }
+    </script>
+</body>
+</html>

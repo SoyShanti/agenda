@@ -1,0 +1,27 @@
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de configuración local
+*.local
+.env
+
+# Imágenes de prueba
+stores/*/catalog/*/test_*
+stores/*/catalog/*/temp_*
+
+# Archivos temporales
+*.tmp
+*.temp
+.cache/
+
+# Logs
+*.log
+logs/
+
+# Reportes temporales
+reports/temp/
+
+# Archivos de respaldo
+*.bak
+*.backup
